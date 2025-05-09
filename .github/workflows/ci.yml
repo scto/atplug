@@ -1,10 +1,8 @@
+name: debug
+
 on:
-  pull_request:
-  push:
-    branches: [main]
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  workflow_dispatch:
+    
 jobs:
   build:
     strategy:
@@ -15,21 +13,30 @@ jobs:
         include:
           - jre: 21
             os: ubuntu-latest
+            
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        
       - name: Install JDK ${{ matrix.jre }}
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: ${{ matrix.jre }}
+          
       - name: gradle caching
         uses: gradle/actions/setup-gradle@v4
+        
       - name: git fetch origin main
         run: git fetch origin main
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      
       - name: gradlew build
         run: ./gradlew build
+        
       - name: junit result
         uses: mikepenz/action-junit-report@v5
         if: always() # always run even if the previous step fails
